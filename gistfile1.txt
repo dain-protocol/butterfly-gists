@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Butterfly YouTube A-B Loop (3:00-3:10) by @dainprotocol</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #player {
+            width: 100%;
+            aspect-ratio: 16/9;
+        }
+        .controls {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        button {
+            padding: 8px 12px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Butterfly - YouTube A-B Loop by @dainprotocol and @ButterflyAgents</h1>
+    <p>Looping video from 3:00 to 3:10</p>
+    
+    <div id="player"></div>
+    
+    <div class="controls">
+        <button id="startBtn">Start Loop</button>
+        <button id="stopBtn">Stop Loop</button>
+        <div class="status" id="status">Loop not started</div>
+    </div>
+
+    <script>
+        // YouTube Player API
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        var looping = false;
+        var startTime = 180; // 3:00
+        var endTime = 190;   // 3:10
+        var checkInterval;
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '390',
+                width: '640',
+                videoId: '7GKxcwYeNWs',
+                playerVars: {
+                    'playsinline': 1,
+                    'start': startTime,
+                    'autoplay': 0
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            // Player is ready
+            document.getElementById('startBtn').addEventListener('click', startLoop);
+            document.getElementById('stopBtn').addEventListener('click', stopLoop);
+        }
+
+        function onPlayerStateChange(event) {
+            // If video ended or paused while looping, restart it
+            if (looping && (event.data === YT.PlayerState.ENDED || event.data === YT.PlayerState.PAUSED)) {
+                player.seekTo(startTime);
+                player.playVideo();
+            }
+        }
+
+        function startLoop() {
+            if (!looping) {
+                looping = true;
+                player.seekTo(startTime);
+                player.playVideo();
+                
+                // Check video time every 100ms
+                checkInterval = setInterval(function() {
+                    var currentTime = player.getCurrentTime();
+                    document.getElementById('status').textContent = 'Looping: ' + 
+                        Math.floor(currentTime / 60) + ':' + 
+                        (Math.floor(currentTime % 60) < 10 ? '0' : '') + 
+                        Math.floor(currentTime % 60);
+                    
+                    // If we've passed the end time, go back to start time
+                    if (currentTime >= endTime) {
+                        player.seekTo(startTime);
+                    }
+                }, 100);
+                
+                document.getElementById('status').textContent = 'Loop active';
+            }
+        }
+
+        function stopLoop() {
+            if (looping) {
+                looping = false;
+                clearInterval(checkInterval);
+                document.getElementById('status').textContent = 'Loop stopped';
+            }
+        }
+    </script>
+</body>
+</html>
